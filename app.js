@@ -186,6 +186,41 @@
     location.reload();
   });
 
+  /* ---------- Seite ohne Scrollen in den Bildschirm einpassen ---------- */
+  var blatt = document.getElementById('blatt'), kopf = document.querySelector('.kopf'), leiste = document.querySelector('.leiste');
+  function passe() {
+    var s = seiten[aktuell]; if (!s) return;
+    var cs = getComputedStyle(blatt);
+    var bw = blatt.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    var bh = window.innerHeight - kopf.offsetHeight - leiste.offsetHeight - parseFloat(cs.paddingTop) - 8;
+    s.style.transform = 'none'; s.style.margin = '0';
+    if (bw < 50 || bh < 120) { s.style.width = ''; return; }
+    // breiteres Layout (weniger Zeilen) verkleinert darstellen; beste Kombination suchen
+    var best = 0, bestW = bw, bestH = 0;
+    for (var f = 1; f <= 3.001; f += 0.125) {
+      var w = bw * f; s.style.width = w + 'px';
+      var h = s.offsetHeight, m = Math.min(bw / w, bh / h, 1);
+      if (m > best + 0.002) { best = m; bestW = w; bestH = h; }
+      if (f === 1 && h <= bh) break; // passt schon in Originalgröße
+    }
+    s.style.width = bestW + 'px';
+    s.style.transformOrigin = '0 0';
+    s.style.transform = best < 1 ? 'scale(' + best + ')' : 'none';
+    s.style.marginLeft = Math.max(0, (bw - bestW * best) / 2) + 'px';
+    s.style.marginBottom = -(bestH * (1 - best)) + 'px';
+    s.style.marginRight = -(bestW - bw) + 'px';
+  }
+  var passeTimer;
+  function passeBald() { clearTimeout(passeTimer); passeTimer = setTimeout(passe, 60); }
+  window.addEventListener('resize', function () {
+    var a = document.activeElement; // Tastatur offen: nicht neu skalieren
+    if (a && a.tagName === 'INPUT' && !a.readOnly) return;
+    passeBald();
+  });
+  window.addEventListener('orientationchange', passeBald);
+  document.querySelectorAll('#blatt img').forEach(function (im) { if (!im.complete) im.addEventListener('load', passeBald); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(passeBald);
+
   /* ---------- Navigation ---------- */
   var aktuell = 0, rueck = -1;
   var hilfeLinks = document.getElementById('hilfelinks'), rueckKnopf = document.getElementById('rueck');
@@ -207,6 +242,7 @@
     rueckKnopf.hidden = rueck < 0;
     if (rueck >= 0) rueckKnopf.textContent = '↩ Zurück zu ' + seiten[rueck].dataset.titel.split(' – ')[0];
     hilfeLinks.querySelectorAll('button[data-geh]').forEach(function (b) { b.classList.toggle('hier', index(b.dataset.geh) === aktuell); });
+    passe();
     window.scrollTo(0, 0);
     setze('seite', aktuell);
     if (!ohneHash) history.pushState({ s: aktuell }, '', location.pathname + location.search);
