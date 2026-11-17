@@ -23,12 +23,30 @@
       inp.spellcheck = false; inp.setAttribute('autocorrect', 'off'); inp.enterKeyHint = 'next';
       inp.setAttribute('aria-label', 'Buchstabe ' + i + ' von ' + len + (nums[i] ? ', Lösungsbuchstabe ' + nums[i] : ''));
       var k = key + '.' + i;
-      if (fest[i]) { inp.value = fest[i]; inp.readOnly = true; inp.tabIndex = -1; }
+      if (fest[i]) {
+        inp.value = fest[i]; inp.readOnly = true;
+        if (nums[i]) { // vorgegebener Lösungsbuchstabe: muss an der Station eingesammelt werden
+          inp.className = 'sammel'; inp.dataset.sammel = k; inp.setAttribute('role', 'button');
+          inp.setAttribute('aria-label', 'Lösungsbuchstabe ' + nums[i] + ': ' + fest[i] + ' – antippen zum Einsammeln');
+          if (daten[k + '.ok']) inp.classList.add('ok');
+        } else inp.tabIndex = -1;
+      }
       else { inp.dataset.key = k; inp.value = daten[k] || ''; }
       var kl = document.createElement('small'); kl.textContent = nums[i] || '';
       feld.appendChild(inp); feld.appendChild(kl); box.appendChild(feld);
       if (nums[i]) nummern[nums[i]] = { key: k, fest: fest[i] || '', seite: seite };
     }
+    if (box.querySelector('.sammel')) {
+      var hin = document.createElement('p'); hin.className = 'tipp sammelhinweis';
+      var anker = box.parentNode.classList.contains('reihe') ? box.parentNode : box;
+      hin.box = box; anker.parentNode.insertBefore(hin, anker.nextSibling);
+    }
+  });
+  document.addEventListener('click', function (ev) {
+    var t = ev.target;
+    if (!(t.dataset && t.dataset.sammel)) return;
+    var k = t.dataset.sammel + '.ok';
+    setze(k, !daten[k]); t.classList.toggle('ok', !!daten[k]); t.blur(); aktualisiere();
   });
 
   function freie(box) { return Array.prototype.slice.call(box.querySelectorAll('input:not([readonly])')); }
@@ -104,9 +122,9 @@
   });
   satz.addEventListener('click', function (ev) {
     var nr = ev.target.dataset && ev.target.dataset.nr;
-    if (nr && nummern[nr] && !nummern[nr].fest) zeige(nummern[nr].seite);
+    if (nr && nummern[nr] && !buchstabe(nr)) zeige(nummern[nr].seite);
   });
-  function buchstabe(n) { var q = nummern[n]; return q ? (q.fest || daten[q.key] || '') : ''; }
+  function buchstabe(n) { var q = nummern[n]; if (!q) return ''; return q.fest ? (daten[q.key + '.ok'] ? q.fest : '') : (daten[q.key] || ''); }
   function satztext() {
     var s = '';
     for (var n = 1; n <= 22; n++) { s += buchstabe(n) || '_'; if (n === 3 || n === 11 || n === 14) s += ' '; }
@@ -148,6 +166,10 @@
       var v = daten[ol.dataset.ziel + '.1'] || '';
       ol.querySelectorAll('li').forEach(function (li) { li.classList.toggle('gewaehlt', li.dataset.b === v); });
     });
+    document.querySelectorAll('.sammelhinweis').forEach(function (p) {
+      var ok = p.box.querySelector('.sammel').classList.contains('ok');
+      p.textContent = ok ? '✓ Buchstabe eingesammelt – steht jetzt im Lösungssatz' : 'Aufgabe erledigt? Kästchen antippen, um den Buchstaben einzusammeln';
+    });
     uebersicht();
   }
 
@@ -165,7 +187,14 @@
   });
 
   /* ---------- Navigation ---------- */
-  var aktuell = 0;
+  var aktuell = 0, rueck = -1;
+  var hilfeLinks = document.getElementById('hilfelinks'), rueckKnopf = document.getElementById('rueck');
+  function index(id) { return seiten.findIndex(function (s) { return s.id === id; }); }
+  function istHilfe(i) { return i === index('waldtiere') || i === index('baeume'); }
+  hilfeLinks.querySelectorAll('button[data-geh]').forEach(function (b) {
+    b.addEventListener('click', function () { if (!istHilfe(aktuell)) rueck = aktuell; zeige(index(b.dataset.geh)); });
+  });
+  rueckKnopf.addEventListener('click', function () { var z = rueck; rueck = -1; zeige(z); });
   var zurueck = document.getElementById('zurueck'), weiter = document.getElementById('weiter');
   var menue = document.getElementById('menue'), liste = document.getElementById('menueliste');
   function zeige(i, ohneHash) {
@@ -174,6 +203,10 @@
     zurueck.disabled = aktuell === 0; weiter.disabled = aktuell === seiten.length - 1;
     document.getElementById('seitenzahl').textContent = (aktuell + 1) + ' / ' + seiten.length;
     menue.hidden = true;
+    if (!istHilfe(aktuell)) rueck = -1;
+    rueckKnopf.hidden = rueck < 0;
+    if (rueck >= 0) rueckKnopf.textContent = '↩ Zurück zu ' + seiten[rueck].dataset.titel.split(' – ')[0];
+    hilfeLinks.querySelectorAll('button[data-geh]').forEach(function (b) { b.classList.toggle('hier', index(b.dataset.geh) === aktuell); });
     window.scrollTo(0, 0);
     setze('seite', aktuell);
     if (!ohneHash && location.hash !== '#' + (aktuell + 1)) history.pushState(null, '', '#' + (aktuell + 1));
@@ -190,7 +223,8 @@
   document.querySelectorAll('a[data-geh]').forEach(function (a) {
     a.addEventListener('click', function (ev) {
       ev.preventDefault();
-      zeige(seiten.findIndex(function (s) { return s.id === a.dataset.geh; }));
+      if (!istHilfe(aktuell)) rueck = aktuell;
+      zeige(index(a.dataset.geh));
     });
   });
 
