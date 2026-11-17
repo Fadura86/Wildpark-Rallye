@@ -1,0 +1,124 @@
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:#e9e9e4;color:#000;font-family:Calibri,Carlito,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:17px;line-height:1.38}
+img{max-width:100%;height:auto;display:block}
+a{color:#0b4fa8}
+
+.kopf{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;gap:8px;max-width:640px;margin:0 auto;padding:8px 16px;padding-top:calc(8px + env(safe-area-inset-top));background:#fff;border-bottom:1px solid #ddd;font-style:italic;font-size:13px}
+
+#blatt{max-width:640px;margin:0 auto;background:#fff;min-height:100vh;padding:14px 18px calc(96px + env(safe-area-inset-bottom))}
+section{display:none}
+section.aktiv{display:block}
+
+h1,h2{font-family:Arial,Helvetica,sans-serif;font-weight:700;margin:.35em 0 .1em}
+h1{font-size:27px;text-align:center}
+h2{font-size:24px}
+.unter{font-family:Arial,Helvetica,sans-serif;font-size:20px;text-align:center;margin:.1em 0 .7em}
+p{margin:.55em 0}
+.mitte{text-align:center}
+.tipp{font-size:13px;color:#555;text-align:center;margin-top:.2em}
+.hilfe{font-size:15px;margin:.2em 0}
+.app{font-size:14px;color:#333;background:#fff6d6;border-left:4px solid #f5b301;padding:8px 10px;margin-top:1.4em}
+.clear{clear:both}
+
+.logos{display:flex;justify-content:space-between;align-items:center}
+.logos img{width:30%}
+.voll{width:100%;margin:.6em 0}
+.rahmen{border:1px solid #000}
+.mittig{margin:.8em auto}
+.sdg{display:flex;gap:8px;justify-content:center;margin:1em 0}
+.sdg img{width:22%;border:4px solid #c8c8c8;border-radius:4px}
+.reihe{display:flex;align-items:center;justify-content:space-around;gap:10px;margin:1em 0}
+.reihe.eng{justify-content:center;gap:28px}
+.reihe.eng .felder{margin:0}
+.bildrechts{float:right;width:42%;margin:0 0 6px 10px}
+.bildlinks{float:left;width:42%;margin:0 12px 6px 0}
+.bildrechts.klein{width:30%}
+.dekolinks{width:26%;margin:0 0 -34px 0}
+.deko2{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:-40px}
+.deko2 img{width:24%}
+.rot{border:3px solid #e30613}
+.hinweis{background:#d9d9d9;box-shadow:-8px 10px 10px #9a9a9a;padding:10px 12px;margin:1.2em 10% 1.6em 12%;font-size:16px}
+
+.kasten{border:1px solid #000;padding:6px 10px 16px}
+.raster3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:start}
+.raster3 img{width:100%;aspect-ratio:4/3;object-fit:cover}
+figure{margin:0 0 14px}
+figcaption,.baumname{font-weight:700;font-size:14px;margin:2px 0 14px;overflow-wrap:anywhere}
+
+/* Antwortkästchen */
+.felder{display:flex;justify-content:center;margin:1em 0 1.2em}
+.felder.links{justify-content:flex-start}
+.feld{display:flex;flex-direction:column;align-items:center;flex:0 1 38px;min-width:0;margin-left:-1px}
+.feld input{width:100%;aspect-ratio:1;border:1.5px solid #000;border-radius:0;background:#fff;color:#0b3a8f;text-align:center;font:700 20px/1 Arial,Helvetica,sans-serif;padding:0;-webkit-appearance:none;appearance:none}
+.feld input:focus{outline:3px solid #f5b301;outline-offset:-3px;background:#fffbe8;position:relative}
+.feld input[readonly]{color:#000;font-family:"Comic Sans MS","Segoe Print",Arial,sans-serif}
+.feld small{font-size:12px;height:16px;line-height:16px}
+.linie{border:0;border-bottom:1.5px solid #000;border-radius:0;width:3.2em;font:inherit;font-weight:700;color:#0b3a8f;text-align:center;background:transparent;padding:0 2px}
+.linie.lang{width:60%;text-align:left}
+
+ol.abc{list-style:none;counter-reset:abc;padding-left:0;margin:.5em 0}
+ol.abc li{counter-increment:abc;position:relative;padding-left:1.9em}
+ol.abc li::before{content:counter(abc,lower-alpha) ")";position:absolute;left:.35em}
+ol.wahl li{padding-top:5px;padding-bottom:5px;border-radius:6px;cursor:pointer;margin:2px 0}
+ol.wahl li::before{top:5px}
+ol.wahl li.gewaehlt{background:#ffe9a6}
+ul.punkte{padding-left:1.4em}
+
+.kreuzblock{display:flex;align-items:center;gap:8px}
+.kreuzblock img{width:48%}
+.kreuze{flex:1}
+.kreuze label{display:flex;align-items:center;gap:10px;padding:4px 0;cursor:pointer}
+.kreuze input{position:absolute;opacity:0}
+.kreuze span{width:22px;height:22px;border:1.5px solid #000;border-radius:50%;flex:none;display:grid;place-items:center;font:700 18px/1 Arial,sans-serif;color:#0b3a8f}
+.kreuze input:checked+span::after{content:"✕"}
+.kreuze input:focus-visible+span{outline:3px solid #f5b301}
+
+.zuordnen{display:flex;gap:10px}
+.arten{list-style:none;margin:0;padding:0 0 0 6px;flex:0 0 34%;display:flex;flex-direction:column;justify-content:space-around}
+.zuordnen ol{flex:1;margin:0}
+.loesungzeile{display:flex;align-items:center;gap:14px;margin:1em 0 0}
+.kopfueber{font:inherit;color:#000;background:none;border:0;padding:4px;transform:rotate(180deg);transition:transform .4s;cursor:pointer;text-align:left}
+.kopfueber.block{display:block;width:100%;border:1px solid #000;padding:8px 10px;margin:1em 0 0}
+.kopfueber.gedreht{transform:none}
+
+/* Lösungssatz */
+#satz{display:grid;gap:14px;justify-content:center;margin:1.2em 0}
+.satzzeile{display:flex;gap:14px;justify-content:center}
+.wort{display:flex}
+.wort .feld{flex:0 0 auto;width:min(7.3vw,36px)}
+.wort .feld input{font-size:min(4.6vw,20px);cursor:pointer;color:#0b3a8f;font-family:Arial,Helvetica,sans-serif}
+.umwelt{font-family:"Comic Sans MS","Segoe Print",cursive;font-size:18px;margin-left:8%}
+
+#uebersicht{border-top:1px solid #000;margin-top:1em}
+#uebersicht div{display:flex;gap:10px;border-bottom:1px solid #ccc;padding:5px 0;font-size:15px}
+#uebersicht b{flex:0 0 5.6em}
+#uebersicht span{font-family:Arial,sans-serif;letter-spacing:.06em;color:#0b3a8f;font-weight:700;overflow-wrap:anywhere}
+#uebersicht .satz{background:#fff6d6;padding:8px 4px}
+.knopf{font:inherit;padding:10px 16px;border:1.5px solid #000;background:#fff;border-radius:8px}
+.knopf.warn{background:#e30613;color:#fff;border-color:#e30613}
+
+.fusslogos{display:flex;align-items:center;gap:8px;margin-top:1em}
+.fusslogos img{flex:1;min-width:0}
+.fusslogos img:first-child{flex:.45}
+
+/* Navigation */
+.leiste{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;max-width:640px;margin:0 auto;background:#fff;border-top:1px solid #bbb;padding-bottom:env(safe-area-inset-bottom)}
+.leiste button{flex:1;border:0;background:none;font:700 16px/1.1 Arial,Helvetica,sans-serif;padding:14px 4px;min-height:56px;color:#000}
+.leiste button:disabled{color:#bbb}
+.leiste button:active{background:#ffe9a6}
+#menueknopf{border-left:1px solid #ddd;border-right:1px solid #ddd}
+#menueknopf small{display:block;font-weight:400;font-size:12px;margin-top:3px}
+
+#menue{position:fixed;inset:0;z-index:10;background:#fff;overflow:auto;max-width:640px;margin:0 auto;padding:0 0 env(safe-area-inset-bottom)}
+#menue[hidden],#lupe[hidden]{display:none}
+.menuekopf{position:sticky;top:0;background:#f5b301;display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;font:700 20px Arial,sans-serif}
+.menuekopf button{border:0;background:none;font-size:24px;padding:4px 10px}
+#menueliste{list-style:none;margin:0;padding:0}
+#menueliste button{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;font:inherit;background:none;border:0;border-bottom:1px solid #e3e3e3;padding:13px 16px;color:#000}
+#menueliste button.hier{background:#fff6d6;font-weight:700}
+#menueliste i{font-style:normal;color:#0b3a8f;font-weight:700;font-family:Arial,sans-serif;white-space:nowrap}
+
+#lupe{position:fixed;inset:0;z-index:20;background:#fff;overflow:auto;-webkit-overflow-scrolling:touch}
+#lupe img{width:220%;max-width:none}
+.zoom{cursor:zoom-in}
