@@ -1,0 +1,228 @@
+(function () {
+  'use strict';
+  var KEY = 'wildpark-rallye-v1';
+  var daten = {};
+  try { daten = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { daten = {}; }
+  function sichern() { try { localStorage.setItem(KEY, JSON.stringify(daten)); } catch (e) {} }
+  function setze(k, v) { if (v === '' || v === false || v == null) delete daten[k]; else daten[k] = v; sichern(); }
+
+  var seiten = Array.prototype.slice.call(document.querySelectorAll('#blatt > section'));
+  var nummern = {}; // Lösungssatz-Nummer -> {key, fest, seite}
+
+  function gross(z) { return z === 'ß' ? 'ß' : z.toUpperCase(); }
+
+  /* ---------- Antwortkästchen aufbauen ---------- */
+  document.querySelectorAll('.felder').forEach(function (box) {
+    var key = box.dataset.key, len = +box.dataset.len;
+    var nums = JSON.parse(box.dataset.nums || '{}'), fest = JSON.parse(box.dataset.fest || '{}');
+    var seite = seiten.indexOf(box.closest('section'));
+    for (var i = 1; i <= len; i++) {
+      var feld = document.createElement('div'); feld.className = 'feld';
+      var inp = document.createElement('input');
+      inp.type = 'text'; inp.maxLength = 2; inp.autocomplete = 'off'; inp.autocapitalize = 'characters';
+      inp.spellcheck = false; inp.setAttribute('autocorrect', 'off'); inp.enterKeyHint = 'next';
+      inp.setAttribute('aria-label', 'Buchstabe ' + i + ' von ' + len + (nums[i] ? ', Lösungsbuchstabe ' + nums[i] : ''));
+      var k = key + '.' + i;
+      if (fest[i]) { inp.value = fest[i]; inp.readOnly = true; inp.tabIndex = -1; }
+      else { inp.dataset.key = k; inp.value = daten[k] || ''; }
+      var kl = document.createElement('small'); kl.textContent = nums[i] || '';
+      feld.appendChild(inp); feld.appendChild(kl); box.appendChild(feld);
+      if (nums[i]) nummern[nums[i]] = { key: k, fest: fest[i] || '', seite: seite };
+    }
+  });
+
+  function freie(box) { return Array.prototype.slice.call(box.querySelectorAll('input:not([readonly])')); }
+
+  document.addEventListener('input', function (ev) {
+    var t = ev.target;
+    if (t.closest && t.closest('.felder')) {
+      var liste = freie(t.closest('.felder')), pos = liste.indexOf(t);
+      var z = t.value.replace(/\s/g, '');
+      var neu = z.slice(-1); // letztes getipptes Zeichen ersetzt das alte
+      t.value = neu ? gross(neu) : '';
+      setze(t.dataset.key, t.value);
+      if (neu && liste[pos + 1]) liste[pos + 1].focus();
+      aktualisiere();
+    } else if (t.matches && t.matches('input.linie')) {
+      setze(t.dataset.key, t.value); aktualisiere();
+    }
+  });
+  document.addEventListener('keydown', function (ev) {
+    var t = ev.target;
+    if (!(t.closest && t.closest('.felder'))) return;
+    var liste = freie(t.closest('.felder')), pos = liste.indexOf(t);
+    if (ev.key === 'Backspace' && !t.value && liste[pos - 1]) {
+      liste[pos - 1].value = ''; setze(liste[pos - 1].dataset.key, ''); liste[pos - 1].focus(); aktualisiere(); ev.preventDefault();
+    } else if (ev.key === 'ArrowLeft' && liste[pos - 1]) liste[pos - 1].focus();
+    else if (ev.key === 'ArrowRight' && liste[pos + 1]) liste[pos + 1].focus();
+    else if (ev.key === 'Enter') t.blur();
+  });
+  document.addEventListener('focusin', function (ev) {
+    var t = ev.target;
+    if (t.closest && t.closest('.felder') && !t.readOnly && t.select) t.select();
+  });
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (t.type === 'checkbox' && t.dataset.key) { setze(t.dataset.key, t.checked); aktualisiere(); }
+  });
+
+  /* gespeicherte Werte in Textfelder / Kreuze */
+  document.querySelectorAll('input.linie').forEach(function (i) { i.value = daten[i.dataset.key] || ''; });
+  document.querySelectorAll('input[type=checkbox][data-key]').forEach(function (c) { c.checked = !!daten[c.dataset.key]; });
+
+  /* ---------- Antwort a/b/c antippen -> Buchstabe ins Kästchen ---------- */
+  document.querySelectorAll('ol.wahl li').forEach(function (li) {
+    li.addEventListener('click', function () {
+      var k = li.parentNode.dataset.ziel + '.1';
+      var inp = document.querySelector('input[data-key="' + k + '"]');
+      var wert = inp.value === li.dataset.b ? '' : li.dataset.b;
+      inp.value = wert; setze(k, wert); aktualisiere();
+    });
+  });
+
+  /* ---------- Kopfüber-Lösungen ---------- */
+  document.querySelectorAll('.kopfueber').forEach(function (b) {
+    b.addEventListener('click', function () { b.classList.toggle('gedreht'); });
+  });
+
+  /* ---------- Lösungssatz ---------- */
+  var satz = document.getElementById('satz');
+  [[[1, 3], [4, 11]], [[12, 14], [15, 22]]].forEach(function (zeile) {
+    var z = document.createElement('div'); z.className = 'satzzeile';
+    zeile.forEach(function (w) {
+      var wort = document.createElement('div'); wort.className = 'wort';
+      for (var n = w[0]; n <= w[1]; n++) {
+        var feld = document.createElement('div'); feld.className = 'feld';
+        var inp = document.createElement('input'); inp.readOnly = true; inp.dataset.nr = n;
+        inp.setAttribute('aria-label', 'Lösungsbuchstabe ' + n);
+        var kl = document.createElement('small'); kl.textContent = n;
+        feld.appendChild(inp); feld.appendChild(kl); wort.appendChild(feld);
+      }
+      z.appendChild(wort);
+    });
+    satz.appendChild(z);
+  });
+  satz.addEventListener('click', function (ev) {
+    var nr = ev.target.dataset && ev.target.dataset.nr;
+    if (nr && nummern[nr] && !nummern[nr].fest) zeige(nummern[nr].seite);
+  });
+  function buchstabe(n) { var q = nummern[n]; return q ? (q.fest || daten[q.key] || '') : ''; }
+  function satztext() {
+    var s = '';
+    for (var n = 1; n <= 22; n++) { s += buchstabe(n) || '_'; if (n === 3 || n === 11 || n === 14) s += ' '; }
+    return s;
+  }
+
+  /* ---------- Übersicht ---------- */
+  function wort(key, len, fest) {
+    var s = '';
+    for (var i = 1; i <= len; i++) s += (fest && fest[i]) || daten[key + '.' + i] || '_';
+    return s;
+  }
+  function uebersicht() {
+    var tiere = ['Kaulquappen', 'Frösche', 'Karpfen', 'Wasservögel', 'Libellen'].filter(function (_, i) { return daten['s3.c' + (i + 1)]; });
+    var z = [
+      ['Station 1', wort('s1', 6)],
+      ['Station 2', 'Deine Lösung: ' + (daten['s2.m'] || '___') + ' m · Kästchen 20: ' + wort('s2', 1)],
+      ['Station 3', 'Angekreuzt: ' + (tiere.join(', ') || '–') + ' · ' + wort('s3', 7)],
+      ['Station 4', wort('s4', 8, { 1: 'P', 2: 'F', 5: 'N' })],
+      ['Station 5', wort('s5a', 8) + ' / ' + wort('s5b', 9)],
+      ['Station 6', 'Kästchen 13: ' + wort('s6', 1)],
+      ['Station 8', 'Kästchen 15: ' + wort('s8', 1)],
+      ['Station 9', wort('s9', 11, { 8: 'Ä' })],
+      ['Station 14', wort('s14', 8)],
+      ['Station 15', wort('s15', 9)],
+      ['Station 18', wort('s18', 10)]
+    ];
+    var h = z.map(function (r) { return '<div><b>' + r[0] + '</b><span></span></div>'; }).join('') +
+      '<div class="satz"><b>Lösungssatz</b><span></span></div>';
+    var u = document.getElementById('uebersicht'); u.innerHTML = h;
+    var sp = u.querySelectorAll('span');
+    z.forEach(function (r, i) { sp[i].textContent = r[1]; });
+    sp[z.length].textContent = satztext() + ' und unsere Umwelt!';
+  }
+
+  function aktualisiere() {
+    satz.querySelectorAll('input').forEach(function (i) { i.value = buchstabe(+i.dataset.nr); });
+    document.querySelectorAll('ol.wahl').forEach(function (ol) {
+      var v = daten[ol.dataset.ziel + '.1'] || '';
+      ol.querySelectorAll('li').forEach(function (li) { li.classList.toggle('gewaehlt', li.dataset.b === v); });
+    });
+    uebersicht();
+  }
+
+  /* ---------- Alles löschen (zweistufig) ---------- */
+  var reset = document.getElementById('reset'), resetTimer;
+  reset.addEventListener('click', function () {
+    if (!reset.classList.contains('warn')) {
+      reset.classList.add('warn'); reset.textContent = 'Wirklich löschen? Nochmal tippen';
+      resetTimer = setTimeout(function () { reset.classList.remove('warn'); reset.textContent = 'Alle Eingaben löschen'; }, 4000);
+      return;
+    }
+    clearTimeout(resetTimer);
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    location.hash = ''; location.reload();
+  });
+
+  /* ---------- Navigation ---------- */
+  var aktuell = 0;
+  var zurueck = document.getElementById('zurueck'), weiter = document.getElementById('weiter');
+  var menue = document.getElementById('menue'), liste = document.getElementById('menueliste');
+  function zeige(i, ohneHash) {
+    aktuell = Math.max(0, Math.min(seiten.length - 1, i));
+    seiten.forEach(function (s, n) { s.classList.toggle('aktiv', n === aktuell); });
+    zurueck.disabled = aktuell === 0; weiter.disabled = aktuell === seiten.length - 1;
+    document.getElementById('seitenzahl').textContent = (aktuell + 1) + ' / ' + seiten.length;
+    menue.hidden = true;
+    window.scrollTo(0, 0);
+    setze('seite', aktuell);
+    if (!ohneHash && location.hash !== '#' + (aktuell + 1)) history.pushState(null, '', '#' + (aktuell + 1));
+  }
+  function ausHash() {
+    var h = location.hash.slice(1), i = -1;
+    if (/^\d+$/.test(h)) i = +h - 1;
+    else if (h) i = seiten.findIndex(function (s) { return s.id === h; });
+    return i;
+  }
+  zurueck.addEventListener('click', function () { zeige(aktuell - 1); });
+  weiter.addEventListener('click', function () { zeige(aktuell + 1); });
+  window.addEventListener('popstate', function () { var i = ausHash(); zeige(i < 0 ? 0 : i, true); });
+  document.querySelectorAll('a[data-geh]').forEach(function (a) {
+    a.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      zeige(seiten.findIndex(function (s) { return s.id === a.dataset.geh; }));
+    });
+  });
+
+  document.getElementById('menueknopf').addEventListener('click', function () {
+    liste.innerHTML = '';
+    seiten.forEach(function (s, n) {
+      var li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button'; if (n === aktuell) b.className = 'hier';
+      var t = document.createElement('span'); t.textContent = s.dataset.titel; b.appendChild(t);
+      var bs = Array.prototype.map.call(s.querySelectorAll('.felder input[data-key]'), function (i) { return i.value || '_'; }).join('');
+      if (bs && s.querySelector('.felder')) { var i = document.createElement('i'); i.textContent = bs.replace(/_/g, '').length === bs.length ? '✓' : ''; b.appendChild(i); }
+      b.addEventListener('click', function () { zeige(n); });
+      li.appendChild(b); liste.appendChild(li);
+    });
+    menue.hidden = false;
+    var hier = liste.querySelector('.hier'); if (hier) hier.scrollIntoView({ block: 'center' });
+  });
+  document.getElementById('menuezu').addEventListener('click', function () { menue.hidden = true; });
+
+  /* ---------- Bilder vergrößern ---------- */
+  var lupe = document.getElementById('lupe'), lupeBild = lupe.querySelector('img');
+  document.querySelectorAll('img.zoom').forEach(function (im) {
+    im.addEventListener('click', function () { lupeBild.src = im.src; lupeBild.alt = im.alt; lupe.hidden = false; lupe.scrollTo(0, 0); });
+  });
+  lupe.addEventListener('click', function () { lupe.hidden = true; });
+
+  /* ---------- Start ---------- */
+  aktualisiere();
+  var start = ausHash();
+  zeige(start >= 0 ? start : (+daten.seite || 0), true);
+
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+})();
