@@ -183,7 +183,7 @@
     }
     clearTimeout(resetTimer);
     try { localStorage.removeItem(KEY); } catch (e) {}
-    location.hash = ''; location.reload();
+    location.reload();
   });
 
   /* ---------- Navigation ---------- */
@@ -209,17 +209,11 @@
     hilfeLinks.querySelectorAll('button[data-geh]').forEach(function (b) { b.classList.toggle('hier', index(b.dataset.geh) === aktuell); });
     window.scrollTo(0, 0);
     setze('seite', aktuell);
-    if (!ohneHash && location.hash !== '#' + (aktuell + 1)) history.pushState(null, '', '#' + (aktuell + 1));
-  }
-  function ausHash() {
-    var h = location.hash.slice(1), i = -1;
-    if (/^\d+$/.test(h)) i = +h - 1;
-    else if (h) i = seiten.findIndex(function (s) { return s.id === h; });
-    return i;
+    if (!ohneHash) history.pushState({ s: aktuell }, '', location.pathname + location.search);
   }
   zurueck.addEventListener('click', function () { zeige(aktuell - 1); });
   weiter.addEventListener('click', function () { zeige(aktuell + 1); });
-  window.addEventListener('popstate', function () { var i = ausHash(); zeige(i < 0 ? 0 : i, true); });
+  window.addEventListener('popstate', function (ev) { zeige(ev.state && ev.state.s != null ? ev.state.s : 0, true); });
   document.querySelectorAll('a[data-geh]').forEach(function (a) {
     a.addEventListener('click', function (ev) {
       ev.preventDefault();
@@ -253,8 +247,11 @@
 
   /* ---------- Start ---------- */
   aktualisiere();
-  var start = ausHash();
-  zeige(start >= 0 ? start : (+daten.seite || 0), true);
+  // Erster Aufruf: Seite 1. Später: zuletzt geöffnete Seite. Die Seitennummer steht bewusst
+  // nicht in der Adresse, damit ein weitergegebener Link immer vorne beginnt.
+  var start = +daten.seite || 0;
+  zeige(start, true);
+  history.replaceState({ s: aktuell }, '', location.pathname + location.search);
 
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     navigator.serviceWorker.register('sw.js').catch(function () {});
