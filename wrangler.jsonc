@@ -1,0 +1,8 @@
+// Cloudflare Workers: die App als reine statische Seite ausliefern (kein eigener Worker-Code)
+{
+  "name": "wildpark-rallye",
+  "compatibility_date": "2025-11-01",
+  "assets": {
+    "directory": "."
+  }
+}
