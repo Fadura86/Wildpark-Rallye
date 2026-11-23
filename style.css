@@ -1,5 +1,6 @@
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;touch-action:manipulation}
+button,a{touch-action:manipulation}
 body{margin:0;background:#fff;color:#000;font-family:Calibri,Carlito,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:17px;line-height:1.38}
 img{max-width:100%;height:auto;display:block}
 a{color:#0b4fa8}
