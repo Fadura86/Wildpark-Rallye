@@ -1,6 +1,6 @@
 // Offline-Cache: App funktioniert nach dem ersten Laden auch ohne Netz im Wildpark
 // Bei jeder Änderung an Bildern oder Dateien die Versionsnummer hochzählen, sonst behalten Geräte alte Bilder.
-const CACHE = 'wildpark-rallye-v3';
+const CACHE = 'wildpark-rallye-v4';
 const DATEIEN = [
  "./",
  "index.html",
