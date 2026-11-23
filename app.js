@@ -200,11 +200,13 @@
 
   /* ---------- Seite ohne Scrollen in den Bildschirm einpassen ---------- */
   var blatt = document.getElementById('blatt'), kopf = document.querySelector('.kopf'), leiste = document.querySelector('.leiste');
+  // Querformat am Handy: Pfeile als schmale Seitenspalten, Leiste unten entfällt
+  var quer = window.matchMedia('(orientation: landscape) and (max-height: 520px)');
   function passe() {
     var s = seiten[aktuell]; if (!s) return;
     var cs = getComputedStyle(blatt);
     var bw = blatt.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    var bh = window.innerHeight - kopf.offsetHeight - leiste.offsetHeight - parseFloat(cs.paddingTop) - 8;
+    var bh = window.innerHeight - kopf.offsetHeight - (quer.matches ? 0 : leiste.offsetHeight) - parseFloat(cs.paddingTop) - 8;
     s.style.transform = 'none'; s.style.margin = '0';
     if (bw < 50 || bh < 120) { s.style.width = ''; return; }
     // breiteres Layout (weniger Zeilen) verkleinert darstellen; beste Kombination suchen
@@ -215,6 +217,8 @@
       if (m > best + 0.002) { best = m; bestW = w; bestH = h; }
       if (f === 1 && h <= bh) break; // passt schon in Originalgröße
     }
+    // im Querformat nicht winzig verkleinern: lieber lesbar lassen und scrollen
+    if (quer.matches && best < 0.72) { s.style.width = ''; return; }
     s.style.width = bestW + 'px';
     s.style.transformOrigin = '0 0';
     s.style.transform = best < 1 ? 'scale(' + best + ')' : 'none';

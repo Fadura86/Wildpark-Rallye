@@ -115,9 +115,13 @@ ul.punkte{padding-left:1.4em}
 
 /* Navigation */
 .leiste{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;max-width:640px;margin:0 auto;background:#fff;border-top:1px solid #bbb;padding-bottom:env(safe-area-inset-bottom)}
-.leiste button{flex:1;border:0;background:none;font:700 16px/1.1 Arial,Helvetica,sans-serif;padding:14px 4px;min-height:56px;color:#000}
+.leiste button{flex:1;white-space:nowrap;border:0;background:none;font:700 16px/1.1 Arial,Helvetica,sans-serif;padding:14px 4px;min-height:56px;color:#000}
 .leiste button:disabled{color:#bbb}
 .leiste button:active{background:#ffe9a6}
+/* Pfeile als CSS-Dreiecke: überall gleich groß, nie als Emoji */
+.pfeil{display:inline-block;width:0;height:0;border-top:.42em solid transparent;border-bottom:.42em solid transparent;vertical-align:-.02em}
+#zurueck .pfeil{border-right:.72em solid currentColor}
+#weiter .pfeil{border-left:.72em solid currentColor}
 #menueknopf{border-left:1px solid #ddd;border-right:1px solid #ddd}
 #menueknopf small{display:block;font-weight:400;font-size:12px;margin-top:3px}
 
@@ -138,3 +142,22 @@ ul.punkte{padding-left:1.4em}
 .feld input.sammel{cursor:pointer;border-style:dashed}
 .feld input.sammel.ok{background:#ffe9a6;border-style:solid}
 .sammelhinweis{margin-top:-.8em}
+
+/* Querformat am Handy: Blätter-Pfeile als schmale Spalten links/rechts,
+   Kopf in einer Zeile, damit die Seite die volle Höhe bekommt */
+@media (orientation:landscape) and (max-height:520px){
+  .kopf,#blatt{max-width:none;margin-left:calc(56px + env(safe-area-inset-left));margin-right:calc(56px + env(safe-area-inset-right))}
+  .kopf{padding:4px 128px 4px 10px;padding-top:calc(4px + env(safe-area-inset-top))}
+  .kopfzeile{display:none}
+  #hilfelinks{margin-top:0}
+  #hilfelinks button{min-height:28px;padding:3px 10px}
+  #blatt{padding:6px 10px 0}
+  .leiste{inset:0 auto auto 0;max-width:none;margin:0;background:none;border:0;padding:0;display:block}
+  .leiste #zurueck,.leiste #weiter{position:fixed;top:0;bottom:0;width:calc(56px + env(safe-area-inset-left));min-height:0;padding:0;background:#fff;font-size:26px;line-height:1}
+  .leiste #zurueck{left:0;border-right:1px solid #ddd;padding-left:env(safe-area-inset-left)}
+  .leiste #weiter{right:0;width:calc(56px + env(safe-area-inset-right));border-left:1px solid #ddd;padding-right:env(safe-area-inset-right)}
+  .leiste .ptext{display:none}
+  .leiste #zurueck:active,.leiste #weiter:active{background:#ffe9a6}
+  #menueknopf{position:fixed;top:calc(4px + env(safe-area-inset-top));right:calc(62px + env(safe-area-inset-right));min-height:0;padding:5px 10px;border:1px solid #f5b301;border-radius:14px;background:#fff6d6;font-size:14px;white-space:nowrap}
+  #menueknopf small{display:inline;margin:0 0 0 6px;font-size:13px}
+}
